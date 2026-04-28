@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://auto-vikup63.ru/sitemap.xml
+
+# Yandex
+User-agent: Yandex
+Allow: /
+Crawl-delay: 1
