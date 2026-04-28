@@ -1,7 +1,5 @@
 // ===== КОНФИГ =====
-const GITHUB_OWNER = 'LuckyBear-game';
-const GITHUB_REPO = 'avto';
-const GITHUB_TOKEN = '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';
+const PIPEDREAM_URL = 'https://eox3nkr4zmbm2cg.m.pipedream.net';
 
 // ===== МОБИЛЬНОЕ МЕНЮ =====
 const burger = document.getElementById('burger');
@@ -95,30 +93,18 @@ form.addEventListener('submit', async (e) => {
   });
 
   try {
-    // Отправляем через GitHub Actions (серверная сторона — обходит блокировку Telegram в РФ)
-    const response = await fetch(
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/dispatches`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `token ${GITHUB_TOKEN}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          event_type: 'send-telegram',
-          client_payload: { message },
-        }),
-      }
-    );
+    const response = await fetch(PIPEDREAM_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    });
 
-    // GitHub возвращает 204 No Content при успехе
-    if (response.status === 204 || response.ok) {
+    if (response.ok) {
       form.style.display = 'none';
       formSuccess.classList.add('show');
       showToast('Заявка успешно отправлена!', 'success');
     } else {
-      throw new Error(`GitHub API error: ${response.status}`);
+      throw new Error(`Error: ${response.status}`);
     }
   } catch (err) {
     console.error('Ошибка отправки:', err);
