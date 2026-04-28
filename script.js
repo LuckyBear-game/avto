@@ -1,6 +1,7 @@
-// ===== КОНФИГ TELEGRAM =====
-const TELEGRAM_BOT_TOKEN = '8627830949:AAG29hS5T5MCigz-HXf85KENkvVDH4QnWrw';
-const TELEGRAM_CHAT_ID = '-1003962390279';
+// ===== КОНФИГ =====
+const GITHUB_OWNER = 'LuckyBear-game';
+const GITHUB_REPO = 'avto';
+const GITHUB_TOKEN = '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';
 
 // ===== МОБИЛЬНОЕ МЕНЮ =====
 const burger = document.getElementById('burger');
@@ -10,7 +11,6 @@ burger.addEventListener('click', () => {
   mobileMenu.classList.toggle('open');
 });
 
-// Закрываем меню при клике на ссылку
 mobileMenu.querySelectorAll('a').forEach(link => {
   link.addEventListener('click', () => mobileMenu.classList.remove('open'));
 });
@@ -39,7 +39,6 @@ const formSuccess = document.getElementById('formSuccess');
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // Валидация
   let valid = true;
 
   const name = document.getElementById('name');
@@ -48,7 +47,6 @@ form.addEventListener('submit', async (e) => {
   const carYear = document.getElementById('carYear');
   const description = document.getElementById('description');
 
-  // Сброс ошибок
   document.querySelectorAll('.form-error').forEach(el => el.classList.remove('show'));
   document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
 
@@ -80,7 +78,6 @@ form.addEventListener('submit', async (e) => {
 
   if (!valid) return;
 
-  // Отправка
   submitBtn.disabled = true;
   submitBtn.textContent = 'Отправляем...';
 
@@ -98,24 +95,30 @@ form.addEventListener('submit', async (e) => {
   });
 
   try {
-    const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text: message,
-        parse_mode: 'HTML',
-      }),
-    });
+    // Отправляем через GitHub Actions (серверная сторона — обходит блокировку Telegram в РФ)
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          event_type: 'send-telegram',
+          client_payload: { message },
+        }),
+      }
+    );
 
-    const data = await response.json();
-
-    if (data.ok) {
+    // GitHub возвращает 204 No Content при успехе
+    if (response.status === 204 || response.ok) {
       form.style.display = 'none';
       formSuccess.classList.add('show');
       showToast('Заявка успешно отправлена!', 'success');
     } else {
-      throw new Error(data.description || 'Ошибка Telegram API');
+      throw new Error(`GitHub API error: ${response.status}`);
     }
   } catch (err) {
     console.error('Ошибка отправки:', err);
